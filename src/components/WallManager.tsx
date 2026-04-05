@@ -58,8 +58,8 @@ export const WallManager: React.FC<Props> = ({ walls, onChange }) => {
 
   return (
     <section className="space-y-8">
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-4">
+      <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-4 self-start sm:self-center">
           <div className="w-10 h-10 bg-blue-50 rounded-2xl flex items-center justify-center">
             <Layout className="w-5 h-5 text-blue-600" />
           </div>
@@ -67,7 +67,7 @@ export const WallManager: React.FC<Props> = ({ walls, onChange }) => {
         </div>
         <button
           onClick={addWall}
-          className="flex items-center gap-2 px-6 py-3 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-100 transition-all font-bold text-xs uppercase tracking-widest cursor-pointer"
+          className="w-full sm:w-auto flex items-center justify-center gap-2 px-6 py-3 bg-blue-50 text-blue-600 rounded-2xl hover:bg-blue-100 transition-all font-bold text-xs uppercase tracking-widest cursor-pointer"
         >
           <Plus className="w-4 h-4" />
           Add Wall
@@ -177,14 +177,12 @@ export const WallManager: React.FC<Props> = ({ walls, onChange }) => {
                                 value={opening.width}
                                 onChange={val => updateOpening(wall.id, opening.id, { width: val })}
                                 size="sm"
-                                inputClassName="!flex-none w-[200px]"
                               />
                               <UnitInput
                                 label="Height"
                                 value={opening.height}
                                 onChange={val => updateOpening(wall.id, opening.id, { height: val })}
                                 size="sm"
-                                inputClassName="!flex-none w-[200px]"
                               />
                             </div>
                           </motion.div>

@@ -115,12 +115,12 @@ export default function App() {
   return (
     <div className="min-h-screen bg-[var(--color-brand-bg)] text-[var(--color-brand-primary)] font-sans selection:bg-amber-100">
       {/* Header */}
-      <header className="bg-white/70 backdrop-blur-md border-b border-slate-100 sticky top-0 z-30">
-        <div className="max-w-7xl mx-auto px-6 h-20 flex items-center justify-between">
+      <header className="bg-white/70 backdrop-blur-md border-b border-slate-100 sticky top-0 z-30 px-6">
+        <div className="max-w-7xl mx-auto py-4 flex flex-col sm:flex-row items-center justify-between gap-4">
           <motion.div 
             initial={{ opacity: 0, x: -20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-3"
+            className="flex items-center gap-3 self-start sm:self-center"
           >
             <div className="w-10 h-10 bg-[var(--color-brand-primary)] rounded-2xl flex items-center justify-center shadow-xl shadow-slate-200">
               <Layout className="w-6 h-6 text-white" />
@@ -131,39 +131,41 @@ export default function App() {
             </div>
           </motion.div>
           
-          <div className="flex p-1.5 bg-slate-100/50 rounded-2xl border border-slate-100">
+          <div className="flex items-center justify-between w-full sm:w-auto gap-4">
+            <div className="flex p-1 bg-slate-100/50 rounded-2xl border border-slate-100">
+              <button
+                onClick={() => setActiveTab('calculator')}
+                className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  activeTab === 'calculator' 
+                    ? 'bg-white text-[var(--color-brand-primary)] shadow-sm' 
+                    : 'text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                <Calculator className="w-4 h-4" />
+                Calculator
+              </button>
+              <button
+                onClick={() => setActiveTab('library')}
+                className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                  activeTab === 'library' 
+                    ? 'bg-white text-[var(--color-brand-primary)] shadow-sm' 
+                    : 'text-slate-400 hover:text-slate-600'
+                }`}
+              >
+                <Library className="w-4 h-4" />
+                Library
+              </button>
+            </div>
+
             <button
-              onClick={() => setActiveTab('calculator')}
-              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-                activeTab === 'calculator' 
-                  ? 'bg-white text-[var(--color-brand-primary)] shadow-sm' 
-                  : 'text-slate-400 hover:text-slate-600'
-              }`}
+              onClick={handleReset}
+              className="flex items-center gap-2 px-3 sm:px-4 py-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all text-xs font-bold cursor-pointer shrink-0"
+              title="Reset All Inputs"
             >
-              <Calculator className="w-4 h-4" />
-              Calculator
-            </button>
-            <button
-              onClick={() => setActiveTab('library')}
-              className={`flex items-center gap-2 px-6 py-2 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-                activeTab === 'library' 
-                  ? 'bg-white text-[var(--color-brand-primary)] shadow-sm' 
-                  : 'text-slate-400 hover:text-slate-600'
-              }`}
-            >
-              <Library className="w-4 h-4" />
-              Library
+              <RotateCcw className="w-4 h-4" />
+              <span className="hidden sm:inline">Reset All</span>
             </button>
           </div>
-
-          <button
-            onClick={handleReset}
-            className="flex items-center gap-2 px-4 py-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all text-xs font-bold cursor-pointer"
-            title="Reset All Inputs"
-          >
-            <RotateCcw className="w-4 h-4" />
-            <span className="hidden md:inline">Reset All</span>
-          </button>
         </div>
       </header>
 
@@ -202,9 +204,9 @@ export default function App() {
               <div className="lg:col-span-7 space-y-12">
                 
                 {/* Wallpaper Specs Card */}
-                <section className="bg-white p-8 rounded-[2.5rem] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 space-y-8">
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-3">
+                <section className="bg-white p-6 sm:p-8 rounded-[2.5rem] shadow-[0_4px_20px_rgba(0,0,0,0.03)] border border-slate-100 space-y-8">
+                  <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <div className="flex items-center gap-3 self-start sm:self-center">
                       <div className="w-10 h-10 bg-amber-50 rounded-2xl flex items-center justify-center">
                         <Sparkles className="w-5 h-5 text-amber-600" />
                       </div>
@@ -212,7 +214,7 @@ export default function App() {
                     </div>
                     <button
                       onClick={handleSaveWallpaper}
-                      className="flex items-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-2xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 text-xs font-bold cursor-pointer"
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-2.5 bg-slate-900 text-white rounded-2xl hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 text-xs font-bold cursor-pointer"
                     >
                       <Save className="w-4 h-4" />
                       Save to Library
@@ -264,7 +266,7 @@ export default function App() {
                 <div className="flex justify-center pt-4">
                   <button
                     onClick={handleCalculate}
-                    className="flex items-center gap-4 px-16 py-5 bg-[var(--color-brand-primary)] text-white rounded-[2rem] hover:bg-slate-800 transition-all shadow-2xl shadow-slate-200 font-bold text-xl group cursor-pointer"
+                    className="w-full sm:w-auto flex items-center justify-center gap-4 px-16 py-5 bg-[var(--color-brand-primary)] text-white rounded-[2rem] hover:bg-slate-800 transition-all shadow-2xl shadow-slate-200 font-bold text-xl group cursor-pointer"
                   >
                     <Calculator className="w-6 h-6 group-hover:scale-110 transition-transform" />
                     Calculate Rolls
