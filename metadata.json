@@ -1,0 +1,5 @@
+{
+  "name": "WallMaster: Strip-Based Wallpaper Calculator",
+  "description": "A professional-grade wallpaper calculator that uses strip-based logic for precise roll estimation. Supports multiple units, pattern repeats, and project saving.",
+  "requestFramePermissions": []
+}
