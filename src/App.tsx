@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Wallpaper, Wall, CalculationResult } from './types';
 import { useWallpapers } from './hooks/useWallpapers';
 import { calculateWallpaper as runCalculation } from './utils/calculations';
@@ -7,6 +7,7 @@ import { CalculationSummary } from './components/CalculationSummary';
 import { WallpaperLibrary } from './components/WallpaperLibrary';
 import { UnitInput } from './components/UnitInput';
 import { motion, AnimatePresence } from 'motion/react';
+import { signInWithGoogle, logout } from './firebase';
 import { 
   Save, 
   RotateCcw, 
@@ -19,7 +20,10 @@ import {
   Ruler,
   Sparkles,
   AlertCircle,
-  CheckCircle2
+  CheckCircle2,
+  LogIn,
+  LogOut,
+  User as UserIcon
 } from 'lucide-react';
 
 const getInitialWallpaper = (): Wallpaper => ({
@@ -33,7 +37,7 @@ const getInitialWallpaper = (): Wallpaper => ({
 });
 
 export default function App() {
-  const { wallpapers, saveWallpaper, deleteWallpaper, importWallpapers } = useWallpapers();
+  const { wallpapers, saveWallpaper, deleteWallpaper, user, loading } = useWallpapers();
   const [currentWallpaper, setCurrentWallpaper] = useState<Wallpaper>(getInitialWallpaper());
   const [walls, setWalls] = useState<Wall[]>([]);
   const [activeTab, setActiveTab] = useState<'calculator' | 'library'>('calculator');
@@ -112,6 +116,17 @@ export default function App() {
     setSkuNote({ message: `Loaded wallpaper: ${wp.sku}`, type: 'success' });
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-50">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-amber-500 border-t-transparent rounded-full animate-spin" />
+          <p className="text-slate-400 font-bold text-xs uppercase tracking-widest">Loading Master...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[var(--color-brand-bg)] text-[var(--color-brand-primary)] font-sans selection:bg-amber-100">
       {/* Header */}
@@ -131,40 +146,33 @@ export default function App() {
             </div>
           </motion.div>
           
-          <div className="flex items-center justify-between w-full sm:w-auto gap-4">
-            <div className="flex p-1 bg-slate-100/50 rounded-2xl border border-slate-100">
+          <div className="flex items-center gap-4">
+            {user ? (
+              <div className="flex items-center gap-2">
+                <div className="hidden md:flex flex-col items-end">
+                  <span className="text-[10px] font-bold text-slate-900 leading-none">{user.displayName}</span>
+                  <button onClick={logout} className="text-[9px] font-bold text-slate-400 hover:text-red-500 transition-colors uppercase tracking-wider cursor-pointer">Logout</button>
+                </div>
+                {user.photoURL ? (
+                  <img src={user.photoURL} alt={user.displayName || ''} className="w-8 h-8 rounded-xl border border-slate-100" referrerPolicy="no-referrer" />
+                ) : (
+                  <div className="w-8 h-8 bg-slate-100 rounded-xl flex items-center justify-center">
+                    <UserIcon className="w-4 h-4 text-slate-400" />
+                  </div>
+                )}
+                <button onClick={logout} className="md:hidden p-2 text-slate-400 hover:text-red-500 transition-colors cursor-pointer">
+                  <LogOut className="w-4 h-4" />
+                </button>
+              </div>
+            ) : (
               <button
-                onClick={() => setActiveTab('calculator')}
-                className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                  activeTab === 'calculator' 
-                    ? 'bg-white text-[var(--color-brand-primary)] shadow-sm' 
-                    : 'text-slate-400 hover:text-slate-600'
-                }`}
+                onClick={signInWithGoogle}
+                className="flex items-center gap-2 px-4 py-2 bg-slate-900 text-white rounded-xl text-xs font-bold hover:bg-slate-800 transition-all shadow-lg shadow-slate-200 cursor-pointer"
               >
-                <Calculator className="w-4 h-4" />
-                Calculator
+                <LogIn className="w-4 h-4" />
+                <span className="hidden sm:inline">Sign In</span>
               </button>
-              <button
-                onClick={() => setActiveTab('library')}
-                className={`flex items-center gap-2 px-4 sm:px-6 py-2 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
-                  activeTab === 'library' 
-                    ? 'bg-white text-[var(--color-brand-primary)] shadow-sm' 
-                    : 'text-slate-400 hover:text-slate-600'
-                }`}
-              >
-                <Library className="w-4 h-4" />
-                Library
-              </button>
-            </div>
-
-            <button
-              onClick={handleReset}
-              className="flex items-center gap-2 px-3 sm:px-4 py-2 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all text-xs font-bold cursor-pointer shrink-0"
-              title="Reset All Inputs"
-            >
-              <RotateCcw className="w-4 h-4" />
-              <span className="hidden sm:inline">Reset All</span>
-            </button>
+            )}
           </div>
         </div>
       </header>
@@ -190,7 +198,82 @@ export default function App() {
       </AnimatePresence>
 
       <main className="max-w-7xl mx-auto px-6 py-12">
-        <AnimatePresence mode="wait">
+        {!user ? (
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.95 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="flex flex-col items-center justify-center py-20 text-center space-y-8"
+          >
+            <div className="w-24 h-24 bg-amber-50 rounded-[2.5rem] flex items-center justify-center shadow-2xl shadow-amber-100/50">
+              <Sparkles className="w-12 h-12 text-amber-500" />
+            </div>
+            <div className="space-y-3 max-w-md">
+              <h2 className="text-3xl font-serif font-bold text-slate-900 tracking-tight">Welcome to WallMaster</h2>
+              <p className="text-slate-500 leading-relaxed">
+                Please sign in to access your professional wallpaper calculator and library. Your data will be saved securely in your private account.
+              </p>
+            </div>
+            <button
+              onClick={signInWithGoogle}
+              className="flex items-center gap-3 px-8 py-4 bg-slate-900 text-white rounded-2xl font-bold hover:bg-slate-800 transition-all shadow-xl shadow-slate-200 cursor-pointer group"
+            >
+              <LogIn className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+              Sign In with Google
+            </button>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-12 w-full max-w-3xl">
+              {[
+                { icon: Calculator, label: 'Precision Calculator', desc: 'Accurate material estimates' },
+                { icon: Library, label: 'Smart Library', desc: 'Save and reuse your specs' },
+                { icon: Ruler, label: 'Unit Flexibility', desc: 'Work in cm, inch, or feet' }
+              ].map((feature, i) => (
+                <div key={i} className="bg-white p-6 rounded-3xl border border-slate-100 text-left space-y-3">
+                  <div className="w-10 h-10 bg-slate-50 rounded-xl flex items-center justify-center">
+                    <feature.icon className="w-5 h-5 text-slate-400" />
+                  </div>
+                  <h3 className="font-bold text-slate-900 text-sm">{feature.label}</h3>
+                  <p className="text-slate-400 text-xs leading-normal">{feature.desc}</p>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        ) : (
+          <div className="space-y-8">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4 bg-white p-2 rounded-3xl border border-slate-100 shadow-sm">
+              <div className="flex p-1 bg-slate-50 rounded-2xl w-full sm:w-auto">
+                <button
+                  onClick={() => setActiveTab('calculator')}
+                  className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                    activeTab === 'calculator' 
+                      ? 'bg-white text-[var(--color-brand-primary)] shadow-md' 
+                      : 'text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  <Calculator className="w-4 h-4" />
+                  Calculator
+                </button>
+                <button
+                  onClick={() => setActiveTab('library')}
+                  className={`flex-1 sm:flex-none flex items-center justify-center gap-2 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all cursor-pointer ${
+                    activeTab === 'library' 
+                      ? 'bg-white text-[var(--color-brand-primary)] shadow-md' 
+                      : 'text-slate-400 hover:text-slate-600'
+                  }`}
+                >
+                  <Library className="w-4 h-4" />
+                  Library
+                </button>
+              </div>
+
+              <button
+                onClick={handleReset}
+                className="flex items-center gap-2 px-6 py-2.5 text-slate-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all text-xs font-bold cursor-pointer w-full sm:w-auto justify-center"
+              >
+                <RotateCcw className="w-4 h-4" />
+                Reset All Inputs
+              </button>
+            </div>
+
+            <AnimatePresence mode="wait">
           {activeTab === 'calculator' ? (
             <motion.div 
               key="calculator"
@@ -336,6 +419,8 @@ export default function App() {
             </motion.div>
           )}
         </AnimatePresence>
+          </div>
+        )}
       </main>
 
       {/* Footer */}

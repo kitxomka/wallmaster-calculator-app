@@ -1,0 +1,43 @@
+{
+  "entities": {
+    "Wallpaper": {
+      "title": "Wallpaper",
+      "description": "A wallpaper configuration saved in the library.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique identifier for the wallpaper." },
+        "sku": { "type": "string", "description": "Stock keeping unit or name." },
+        "width": {
+          "type": "object",
+          "properties": {
+            "value": { "type": "number" },
+            "unit": { "type": "string", "enum": ["cm", "inch", "ft"] }
+          }
+        },
+        "length": {
+          "type": "object",
+          "properties": {
+            "value": { "type": "number" },
+            "unit": { "type": "string", "enum": ["cm", "inch", "ft"] }
+          }
+        },
+        "patternRepeat": {
+          "type": "object",
+          "properties": {
+            "value": { "type": "number" },
+            "unit": { "type": "string", "enum": ["cm", "inch", "ft"] }
+          }
+        },
+        "updatedAt": { "type": "number", "description": "Timestamp of last update." },
+        "uid": { "type": "string", "description": "The UID of the user who owns this wallpaper." }
+      },
+      "required": ["id", "sku", "width", "length", "patternRepeat", "updatedAt", "uid"]
+    }
+  },
+  "firestore": {
+    "/wallpapers/{wallpaperId}": {
+      "schema": "Wallpaper",
+      "description": "Collection of wallpapers saved by users."
+    }
+  }
+}

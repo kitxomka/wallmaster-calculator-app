@@ -1,0 +1,53 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: wallpapers
+    // Document ID: {wallpaperId}
+    // Fields:
+    //   - id: string (required) - Internal ID
+    //   - sku: string (required, size < 100) - SKU or Name
+    //   - width: map (required) - {value: number, unit: string}
+    //   - length: map (required) - {value: number, unit: string}
+    //   - patternRepeat: map (required) - {value: number, unit: string}
+    //   - updatedAt: number (required) - Timestamp
+    //   - uid: string (required) - Owner UID
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isValidWallpaper(data) {
+      return data.keys().hasAll(['id', 'sku', 'width', 'length', 'patternRepeat', 'updatedAt', 'uid']) &&
+             data.sku is string && data.sku.size() > 0 && data.sku.size() < 100 &&
+             data.width is map && data.width.value is number &&
+             data.length is map && data.length.value is number &&
+             data.patternRepeat is map && data.patternRepeat.value is number &&
+             data.updatedAt is number &&
+             data.uid == request.auth.uid;
+    }
+
+    match /wallpapers/{wallpaperId} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isAuthenticated() && isValidWallpaper(request.resource.data) && request.resource.data.uid == request.auth.uid;
+      allow update: if isAuthenticated() && isOwner(resource.data.uid) && isValidWallpaper(request.resource.data) && request.resource.data.uid == resource.data.uid;
+      allow delete: if isAuthenticated() && isOwner(resource.data.uid);
+    }
+    
+    match /users/{userId} {
+      allow read, write: if isOwner(userId);
+    }
+  }
+}
