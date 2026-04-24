@@ -60,21 +60,58 @@ export const calculateWallpaper = (wallpaper: Wallpaper, walls: Wall[]): Calcula
 
     totalStrips += strips;
     
-    const rollsForThisWall = stripsPerRoll > 0 ? Math.ceil(strips / stripsPerRoll) : 0;
+    // We keep a simple estimate for the wall breakdown
+    const rollsForThisWall = stripsPerRoll > 0 ? Math.ceil(strips / stripsPerRoll) : (strips > 0 ? 1 : 0);
 
     stripsPerWall.push({ wallId: wall.id, strips, rollsForThisWall });
     details.push({ wallId: wall.id, adjustedStripLength, stripsPerRoll });
   });
 
-  // Total rolls is the sum of rolls needed if we calculate per wall, 
-  // OR we can sum all strips and divide by strips per roll if rolls are shared.
-  // Usually, rolls are shared across walls.
-  // But since each wall can have different height, stripsPerRoll can vary.
-  // Let's calculate total rolls by summing strips and using an average or the worst-case stripsPerRoll.
-  // Actually, a more accurate way is to see how many strips we get from each roll.
-  
-  // Simplified: Sum of rolls needed per wall (safer estimate)
-  const totalRolls = stripsPerWall.reduce((sum, s) => sum + s.rollsForThisWall, 0);
+  // Total rolls calculation (Pooled Analysis):
+  // Instead of just summing walls, we simulate fitting all strips into rolls.
+  // This prevents the "0 rolls" bug and provides the most efficient material estimate.
+  let totalRolls = 0;
+  if (totalStrips > 0 && rollLengthCm > 0) {
+    const allStrips: number[] = [];
+    walls.forEach((wall, i) => {
+      const stripsNeeded = stripsPerWall[i].strips;
+      const stripLength = details[i].adjustedStripLength;
+      for (let j = 0; j < stripsNeeded; j++) {
+        allStrips.push(stripLength);
+      }
+    });
+
+    // Fit strips into rolls using a simple bin-packing approach (First Fit Decreasing)
+    allStrips.sort((a, b) => b - a);
+    const rolls: number[] = []; // Stores remaining length in each roll
+
+    allStrips.forEach(stripLength => {
+      // Check if strip will even fit in a fresh roll
+      if (stripLength > rollLengthCm) {
+        // Technically impossible to fit this strip in one roll, 
+        // but we'll count it as needing a new roll to prevent crash/error
+        rolls.push(0);
+        return;
+      }
+
+      let placed = false;
+      for (let i = 0; i < rolls.length; i++) {
+        if (rolls[i] >= stripLength) {
+          rolls[i] -= stripLength;
+          placed = true;
+          break;
+        }
+      }
+      if (!placed) {
+        rolls.push(rollLengthCm - stripLength);
+      }
+    });
+    
+    totalRolls = rolls.length;
+  } else if (totalStrips > 0) {
+    // Fallback if roll length is not provided yet
+    totalRolls = 1;
+  }
 
   return {
     stripsPerWall,
